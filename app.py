@@ -7,7 +7,7 @@ import json
 app = Flask(__name__)
 
 # Version will be updated during the lab
-VERSION = "v1.0.0"
+VERSION = "v2.0.0"
 ENVIRONMENT = "ENVIRONMENT_PLACEHOLDER"
 
 # Initialize DynamoDB resource
