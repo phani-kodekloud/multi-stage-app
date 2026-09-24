@@ -3,6 +3,7 @@ import boto3
 from uuid import uuid4
 import os
 import json
+import datetime
 
 app = Flask(__name__)
 
@@ -101,16 +102,26 @@ HTML_TEMPLATE = '''
         tr:nth-child(even) {
             background-color: #f9f9f9;
         }
+        .v2-feature {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background-color: #ff5722;
+            color: white;
+            padding: 5px 10px;
+            border-radius: 5px;
+        }
     </style>
 </head>
 <body>
     <div class="container">
+        <div class="v2-feature">New in V2: DynamoDB Integration!</div>
         <h1>Multi-Stage Deployment Demo</h1>
         <p>Running version: <span class="version">{{ version }}</span></p>
         <div class="environment {{ environment.lower() }}">
             Environment: {{ environment }}
         </div>
-        
+
         <form method="post">
             <h3>Add User Data</h3>
             <div>
@@ -127,7 +138,7 @@ HTML_TEMPLATE = '''
             </div>
             <button type="submit">Submit</button>
         </form>
-        
+
         <div>
             <h3>Stored User Data</h3>
             <table>
@@ -137,6 +148,7 @@ HTML_TEMPLATE = '''
                         <th>Name</th>
                         <th>Email</th>
                         <th>Message</th>
+                        <th>Submitted At</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -146,6 +158,7 @@ HTML_TEMPLATE = '''
                         <td>{{ user.name }}</td>
                         <td>{{ user.email }}</td>
                         <td>{{ user.message }}</td>
+                        <td>{{ user.timestamp if 'timestamp' in user else 'N/A' }}</td>
                     </tr>
                     {% endfor %}
                 </tbody>
@@ -161,24 +174,25 @@ def index():
     if request.method == 'POST':
         # Generate a unique ID
         user_id = str(uuid4())
-        
+
         # Get form data
         name = request.form.get('name')
         email = request.form.get('email')
         message = request.form.get('message')
-        
+
         # Save to DynamoDB
         table.put_item(
             Item={
                 'user_id': user_id,
                 'name': name,
                 'email': email,
-                'message': message
+                'message': message,
+                'timestamp': datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
             }
         )
-        
+
         return redirect(url_for('index'))
-    
+
     # Get all items from DynamoDB
     try:
         response = table.scan()
@@ -186,10 +200,10 @@ def index():
     except Exception as e:
         users = []
         print(f"Error scanning DynamoDB: {e}")
-    
+
     return render_template_string(
-        HTML_TEMPLATE, 
-        version=VERSION, 
+        HTML_TEMPLATE,
+        version=VERSION,
         environment=ENVIRONMENT,
         users=users
     )
