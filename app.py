@@ -8,7 +8,7 @@ import datetime
 app = Flask(__name__)
 
 # Version will be updated during the lab
-VERSION = "v2.0.0"
+VERSION = "v1.1.0"
 ENVIRONMENT = "ENVIRONMENT_PLACEHOLDER"
 
 # Initialize DynamoDB resource
